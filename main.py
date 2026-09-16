@@ -246,60 +246,43 @@ st.caption(
 )
 st.markdown("---")
 # ----------------------------------------------------
-# 8. 2009년도 장르별 개봉 영화 수 (막대 그래프)
+# 8. 가장 많이 포함되어 있는 장르 순위 (막대 그래프)
 # ----------------------------------------------------
-st.subheader("8. 2009년도 장르별 개봉 영화 수")
+st.subheader("8. 어떤 장르가 가장 많이 포함되어 있는가?")
 
-# openDt 컬럼을 안전하게 연도(openYear)로 변환 (숫자 추출)
-df["openYear"] = (
-    df["openDt"]
-    .astype(str)
-    .str.extract(r"(\d{4})")[0]  # 연속된 4자리 숫자(연도) 추출
-    .fillna(0)
-    .astype(int)
+# 장르별 영화 수 집계 및 내림차순 정렬
+genre_all_counts = df["genre"].value_counts().reset_index()
+genre_all_counts.columns = ["genre", "count"]
+
+fig8 = px.bar(
+    genre_all_counts,
+    x="genre",
+    y="count",
+    color="genre",
+    text="count",
+    title="장르별 영화 포함 수 (내림차순 정렬)",
+    labels={"genre": "장르", "count": "영화 수"},
 )
 
-# 2009년 영화 필터링
-df_2009 = df[df["openYear"] == 2009]
+fig8.update_traces(
+    textposition="outside",
+    hovertemplate="<b>장르: %{x}</b><br>포함된 영화 수: %{y}편",
+)
 
-# 2009년 데이터 존재 여부 확인 후 그래프 출력
-if df_2009.empty:
-    st.warning("⚠️ 데이터셋 내에 2009년에 개봉한 영화 데이터가 존재하지 않습니다.")
-else:
-    # 2009년 장르별 편수 집계
-    genre_2009_counts = (
-        df_2009["genre"].value_counts().reset_index()
-    )
-    genre_2009_counts.columns = ["genre", "count"]
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_top_genres")
 
-    fig8 = px.bar(
-        genre_2009_counts,
-        x="genre",
-        y="count",
-        color="genre",
-        text="count",
-        title="2009년 장르별 개봉 영화 수",
-        labels={"genre": "장르", "count": "개봉 영화 수"},
-    )
+# 가장 많이 포함된 상위 3개 장르 추출
+top3_genres = genre_all_counts.head(3)
+top3_str = ", ".join(
+    [
+        f"**'{row['genre']}'**({row['count']}편)"
+        for _, row in top3_genres.iterrows()
+    ]
+)
 
-    fig8.update_traces(
-        textposition="outside",
-        hovertemplate="<b>장르: %{x}</b><br>개봉 편수: %{y}편",
-    )
-
-    st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_2009_genres")
-
-    top3_genres_2009 = genre_2009_counts.head(3)
-    top3_str = ", ".join(
-        [
-            f"**'{row['genre']}'**({row['count']}편)"
-            for _, row in top3_genres_2009.iterrows()
-        ]
-    )
-
-    st.markdown("---")
-    st.markdown("**💡 이 그래프로 알 수 있는 것**")
-    st.caption(
-        f"2009년에 개봉한 영화들의 장르별 비중을 알 수 있으며, 가장 많이 개봉된 상위 3개 장르는 {top3_str}입니다."
-    )
-    st.markdown("---")
+st.markdown("---")
+st.markdown("**💡 이 그래프로 알 수 있는 것**")
+st.caption(
+    f"전체 데이터셋 중 가장 많이 포함되어 있는 장르 순위를 한눈에 확인할 수 있으며, 가장 많은 비중을 차지하는 상위 3개 장르는 {top3_str}입니다."
+)
+st.markdown("---")
