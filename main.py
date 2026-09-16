@@ -245,3 +245,40 @@ st.caption(
     "각 제작 국가별로 어떤 장르의 영화가 주로 수입·제작되어 개봉했는지 국가와 장르 간의 계층적 비중 구성을 한눈에 파악할 수 있습니다."
 )
 st.markdown("---")
+
+# ----------------------------------------------------
+# 8. 10위권 체류 일수와 총 관객 수의 관계 (산점도)
+# ----------------------------------------------------
+st.subheader("8. 10위권 오래 머문 영화는 총 관객도 많은가")
+
+fig8 = px.scatter(
+    df,
+    x="days_in_top10",
+    y="total_audi",
+    color="genre",
+    hover_name="movieNm",
+    title="20위권 오래 머문 영화는 총 관객도 많은가",
+    labels={
+        "days_in_top10": "10위권 머문 날수",
+        "total_audi": "총 관객 수",
+        "genre": "장르",
+    },
+    hover_data={
+        "days_in_top10": True,
+        "total_audi": ":,f",
+        "genre": True,
+    },
+)
+
+fig8.update_traces(
+    hovertemplate="<b>%{hovertext}</b><br>장르: %{customdata[0]}<br>10위권 머문 날수: %{x}일<br>총 관객 수: %{y:,.0f}명"
+)
+
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_top10_scatter")
+
+st.markdown("---")
+st.markdown("**💡 이 그래프로 알 수 있는 것**")
+st.caption(
+    "박스오피스 10위권 내에 오랫동안 머문 영화일수록 총 관객 수가 늘어나는 뚜렷한 양의 상관관계를 보여주며, 흥행 지속력이 최종 성적에 미치는 영향을 직관적으로 확인할 수 있습니다."
+)
+st.markdown("---")
