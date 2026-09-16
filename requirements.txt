@@ -1,1 +1,3 @@
-#라이브러리목록
+streamlit
+pandas
+plotly
