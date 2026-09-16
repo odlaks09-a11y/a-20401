@@ -247,38 +247,42 @@ st.caption(
 st.markdown("---")
 
 # ----------------------------------------------------
-# 8. 10위권 체류 일수와 총 관객 수의 관계 (산점도)
+# 8. 가장 오랫동안 개봉한 영화 이름은 무엇인가 (막대 그래프)
 # ----------------------------------------------------
-st.subheader("8. 10위권 오래 머문 영화는 총 관객도 많은가")
+st.subheader("8. 가장 오랫동안 개봉한 영화 이름은 무엇인가")
 
-fig8 = px.scatter(
-    df,
+# 박스오피스 Top 10 진입 기간(days_in_top10) 상위 10개 영화 필터링
+top_days_df = df.nlargest(10, "days_in_top10").sort_values("days_in_top10", ascending=True)
+
+fig8 = px.bar(
+    top_days_df,
     x="days_in_top10",
-    y="total_audi",
+    y="movieNm",
+    orientation="h",
     color="genre",
-    hover_name="movieNm",
-    title="20위권 오래 머문 영화는 총 관객도 많은가",
+    title="가장 오랫동안 개봉한 영화 이름은 무엇인가",
     labels={
-        "days_in_top10": "10위권 머문 날수",
-        "total_audi": "총 관객 수",
+        "days_in_top10": "박스오피스 Top 10 유지 일수",
+        "movieNm": "영화명",
         "genre": "장르",
     },
-    hover_data={
-        "days_in_top10": True,
-        "total_audi": ":,f",
-        "genre": True,
-    },
+    hover_name="movieNm",
 )
 
 fig8.update_traces(
-    hovertemplate="<b>%{hovertext}</b><br>장르: %{customdata[0]}<br>10위권 머문 날수: %{x}일<br>총 관객 수: %{y:,.0f}명"
+    hovertemplate="<b>%{hovertext}</b><br>Top 10 유지 기간: %{x}일"
 )
 
-st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_top10_scatter")
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_bar")
+
+# 1위 영화 자동 추출
+top_stay_movie = top_days_df.iloc[-1]
+top_stay_name = top_stay_movie["movieNm"]
+top_stay_days = top_stay_movie["days_in_top10"]
 
 st.markdown("---")
 st.markdown("**💡 이 그래프로 알 수 있는 것**")
 st.caption(
-    "박스오피스 10위권 내에 오랫동안 머문 영화일수록 총 관객 수가 늘어나는 뚜렷한 양의 상관관계를 보여주며, 흥행 지속력이 최종 성적에 미치는 영향을 직관적으로 확인할 수 있습니다."
+    f"박스오피스 Top 10 순위권 내에 가장 오랫동안 머문 영화는 **'{top_stay_name}'**({top_stay_days}일)이며, 롱런 흥행에 성공한 상위 영화들의 진입 기간을 한눈에 파악할 수 있습니다."
 )
 st.markdown("---")
