@@ -247,42 +247,55 @@ st.caption(
 st.markdown("---")
 
 # ----------------------------------------------------
-# 8. 가장 오랫동안 개봉한 영화 이름은 무엇인가 (막대 그래프)
+# 8. 재개봉 영화 TOP 3 및 관객 수 (막대 그래프)
 # ----------------------------------------------------
-st.subheader("8. 가장 오랫동안 개봉한 영화 이름은 무엇인가")
+st.subheader("8. 주요 재개봉 영화 및 관객 수 TOP 3")
 
-# 박스오피스 Top 10 진입 기간(days_in_top10) 상위 10개 영화 필터링
-top_days_df = df.nlargest(10, "days_in_top10").sort_values("days_in_top10", ascending=True)
+# openDt(개봉일, YYYYMMDD 형태)에서 연도(YYYY) 추출
+df["openYear"] = df["openDt"].astype(str).str[:4].astype(int)
+
+# 개봉 연도가 최근 수집 기간(예: 2018년 이전)보다 오래된 영화를 재개봉작으로 정의
+# (데이터셋 내 대다수 영화의 개봉년도 대비 과거 연도 기준 필터링)
+rerelease_df = df[df["openYear"] < 2018].sort_values(
+    by="total_audi", ascending=False
+)
+
+# 상위 3개 재개봉 영화 추출
+top3_rerelease = rerelease_df.head(3)
 
 fig8 = px.bar(
-    top_days_df,
-    x="days_in_top10",
-    y="movieNm",
-    orientation="h",
+    top3_rerelease,
+    x="movieNm",
+    y="total_audi",
     color="genre",
-    title="가장 오랫동안 개봉한 영화 이름은 무엇인가",
+    text="total_audi",
+    title="재개봉 영화 중 총 관객 수 TOP 3",
     labels={
-        "days_in_top10": "박스오피스 Top 10 유지 일수",
         "movieNm": "영화명",
+        "total_audi": "총 관객 수",
         "genre": "장르",
     },
-    hover_name="movieNm",
 )
 
 fig8.update_traces(
-    hovertemplate="<b>%{hovertext}</b><br>Top 10 유지 기간: %{x}일"
+    texttemplate="%{text:,.0f}명",
+    textposition="outside",
+    hovertemplate="<b>%{x}</b><br>개봉일: %{customdata}<br>총 관객 수: %{y:,.0f}명",
+    customdata=top3_rerelease["openDt"],
 )
 
-st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_bar")
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_rerelease")
 
-# 1위 영화 자동 추출
-top_stay_movie = top_days_df.iloc[-1]
-top_stay_name = top_stay_movie["movieNm"]
-top_stay_days = top_stay_movie["days_in_top10"]
+# 상위 3개 재개봉 영화 이름과 관객 수 출력
+top3_list = [
+    f"**'{row['movieNm']}'**({row['total_audi']:,.0f}명, 개봉일: {row['openDt']})"
+    for _, row in top3_rerelease.iterrows()
+]
+top3_str = ", ".join(top3_list)
 
 st.markdown("---")
 st.markdown("**💡 이 그래프로 알 수 있는 것**")
 st.caption(
-    f"박스오피스 Top 10 순위권 내에 가장 오랫동안 머문 영화는 **'{top_stay_name}'**({top_stay_days}일)이며, 롱런 흥행에 성공한 상위 영화들의 진입 기간을 한눈에 파악할 수 있습니다."
+    f"과거 개봉 후 해당 기간에 재개봉하여 박스오피스 상위권에 진입한 영화 중, 가장 관객 수가 많은 상위 3개 영화는 {top3_str}입니다."
 )
 st.markdown("---")
