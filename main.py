@@ -843,5 +843,3 @@ st.markdown("**💡 이 그래프로 알 수 있는 것**")
 st.caption(
     f"전체 관객 수가 가장 많은 국가는 **'{top_nation_name}'**({top_nation_sum:,.0f}명)으로, 관객 동원력 면에서 시장 점유율이 가장 높음을 알 수 있습니다."
 )
-# 예시: key 옵션 추가
-st.plotly_chart(fig1, use_container_width=True, key="chart_genre_pie")
