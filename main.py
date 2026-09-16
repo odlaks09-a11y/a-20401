@@ -246,48 +246,65 @@ st.caption(
 )
 st.markdown("---")
 # ----------------------------------------------------
-# 8. 가장 흥행한 장르 순위 (총 관객 수 기준)
+# 8. 첫 주 대비 최종 관객 배수 TOP 10 (입소문·장기 흥행작)
 # ----------------------------------------------------
-st.subheader("8. 가장 흥행한 장르는 무엇인가?")
+st.subheader("8. 개봉 첫 주 대비 최종 관객 수가 가장 많이 증가한 영화 TOP 10")
 
-# 장르별 총 관객 수 합계 집계 및 내림차순 정렬
-genre_audi_sum = (
-    df.groupby("genre")["total_audi"]
-    .sum()
-    .reset_index()
-    .sort_values(by="total_audi", ascending=False)
+# 첫 주 관객 수가 0인 경우 발생할 수 있는 분모 오류 방지 (1 이상만 선택)
+df_valid_week = df[df["first_week_audi"] > 0].copy()
+
+# 흥행 배수(총 관객 수 / 첫 주 관객 수) 계산
+df_valid_week["multiplier"] = (
+    df_valid_week["total_audi"] / df_valid_week["first_week_audi"]
 )
+
+# 흥행 배수 기준 상위 10개 영화 추출 및 정렬
+top10_multiplier = df_valid_week.sort_values(
+    by="multiplier", ascending=False
+).head(10)
 
 fig8 = px.bar(
-    genre_audi_sum,
-    x="genre",
-    y="total_audi",
+    top10_multiplier,
+    x="multiplier",
+    y="movieNm",
+    orientation="h",
     color="genre",
-    text="total_audi",
-    title="장르별 총 관객 수 합계 (가장 흥행한 장르 순)",
-    labels={"genre": "장르", "total_audi": "총 관객 수"},
+    text="multiplier",
+    title="개봉 첫 주 관객 대비 총 관객 수 배수 (TOP 10)",
+    labels={
+        "multiplier": "흥행 배수 (최종 관객 / 첫 주 관객)",
+        "movieNm": "영화명",
+        "genre": "장르",
+    },
+    hover_data={
+        "first_week_audi": ":,f",
+        "total_audi": ":,f",
+    },
 )
+
+# Y축 순서를 값이 큰 영화가 위로 오도록 설정
+fig8.update_layout(yaxis={"categoryorder": "total ascending"})
 
 fig8.update_traces(
-    texttemplate="%{text:,.0f}명",
+    texttemplate="%{text:.1f}배",
     textposition="outside",
-    hovertemplate="<b>장르: %{x}</b><br>총 관객 수: %{y:,.0f}명",
+    hovertemplate="<b>%{y}</b><br>흥행 배수: %{x:.1f}배<br>첫 주 관객: %{customdata[0]:,.0f}명<br>최종 관객: %{customdata[1]:,.0f}명",
 )
 
-st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_hit_genres")
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_multiplier")
 
-# 가장 흥행한 상위 3개 장르 추출
-top3_hit_genres = genre_audi_sum.head(3)
-top3_hit_str = ", ".join(
+# 상위 3개 영화 추출
+top3_mult_movies = top10_multiplier.head(3)
+top3_mult_str = ", ".join(
     [
-        f"**'{row['genre']}'**({row['total_audi']:,.0f}명)"
-        for _, row in top3_hit_genres.iterrows()
+        f"**'{row['movieNm']}'**({row['multiplier']:.1f}배)"
+        for _, row in top3_mult_movies.iterrows()
     ]
 )
 
 st.markdown("---")
 st.markdown("**💡 이 그래프로 알 수 있는 것**")
 st.caption(
-    f"전체 관객 수 합계를 기준으로 가장 높은 흥행을 기록한 장르 순위를 파악할 수 있으며, 가장 흥행한 상위 3개 장르는 {top3_hit_str}입니다."
+    f"개봉 초기 관객 동원력 대비 입소문이나 장기 상영을 통해 최종 성적을 크게 끌어올린 '장기 흥행작'을 파악할 수 있으며, 가장 높은 배수를 기록한 상위 3개 영화는 {top3_mult_str}입니다."
 )
 st.markdown("---")
