@@ -246,43 +246,48 @@ st.caption(
 )
 st.markdown("---")
 # ----------------------------------------------------
-# 8. 가장 많이 포함되어 있는 장르 순위 (막대 그래프)
+# 8. 가장 흥행한 장르 순위 (총 관객 수 기준)
 # ----------------------------------------------------
-st.subheader("8. 어떤 장르가 가장 많이 포함되어 있는가?")
+st.subheader("8. 가장 흥행한 장르는 무엇인가?")
 
-# 장르별 영화 수 집계 및 내림차순 정렬
-genre_all_counts = df["genre"].value_counts().reset_index()
-genre_all_counts.columns = ["genre", "count"]
+# 장르별 총 관객 수 합계 집계 및 내림차순 정렬
+genre_audi_sum = (
+    df.groupby("genre")["total_audi"]
+    .sum()
+    .reset_index()
+    .sort_values(by="total_audi", ascending=False)
+)
 
 fig8 = px.bar(
-    genre_all_counts,
+    genre_audi_sum,
     x="genre",
-    y="count",
+    y="total_audi",
     color="genre",
-    text="count",
-    title="장르별 영화 포함 수 (내림차순 정렬)",
-    labels={"genre": "장르", "count": "영화 수"},
+    text="total_audi",
+    title="장르별 총 관객 수 합계 (가장 흥행한 장르 순)",
+    labels={"genre": "장르", "total_audi": "총 관객 수"},
 )
 
 fig8.update_traces(
+    texttemplate="%{text:,.0f}명",
     textposition="outside",
-    hovertemplate="<b>장르: %{x}</b><br>포함된 영화 수: %{y}편",
+    hovertemplate="<b>장르: %{x}</b><br>총 관객 수: %{y:,.0f}명",
 )
 
-st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_top_genres")
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_hit_genres")
 
-# 가장 많이 포함된 상위 3개 장르 추출
-top3_genres = genre_all_counts.head(3)
-top3_str = ", ".join(
+# 가장 흥행한 상위 3개 장르 추출
+top3_hit_genres = genre_audi_sum.head(3)
+top3_hit_str = ", ".join(
     [
-        f"**'{row['genre']}'**({row['count']}편)"
-        for _, row in top3_genres.iterrows()
+        f"**'{row['genre']}'**({row['total_audi']:,.0f}명)"
+        for _, row in top3_hit_genres.iterrows()
     ]
 )
 
 st.markdown("---")
 st.markdown("**💡 이 그래프로 알 수 있는 것**")
 st.caption(
-    f"전체 데이터셋 중 가장 많이 포함되어 있는 장르 순위를 한눈에 확인할 수 있으며, 가장 많은 비중을 차지하는 상위 3개 장르는 {top3_str}입니다."
+    f"전체 관객 수 합계를 기준으로 가장 높은 흥행을 기록한 장르 순위를 파악할 수 있으며, 가장 흥행한 상위 3개 장르는 {top3_hit_str}입니다."
 )
 st.markdown("---")
