@@ -1,4 +1,4 @@
-import pandas as pd
+mport pandas as pd
 import plotly.express as px
 import streamlit as st
 
@@ -245,57 +245,52 @@ st.caption(
     "각 제작 국가별로 어떤 장르의 영화가 주로 수입·제작되어 개봉했는지 국가와 장르 간의 계층적 비중 구성을 한눈에 파악할 수 있습니다."
 )
 st.markdown("---")
-
 # ----------------------------------------------------
-# 8. 재개봉 영화 TOP 3 및 관객 수 (막대 그래프)
+# 8. 2009년도 장르별 개봉 영화 수 (막대 그래프)
 # ----------------------------------------------------
-st.subheader("8. 주요 재개봉 영화 및 관객 수 TOP 3")
+st.subheader("8. 2009년도 장르별 개봉 영화 수")
 
-# openDt(개봉일, YYYYMMDD 형태)에서 연도(YYYY) 추출
-df["openYear"] = df["openDt"].astype(str).str[:4].astype(int)
-
-# 개봉 연도가 최근 수집 기간(예: 2018년 이전)보다 오래된 영화를 재개봉작으로 정의
-# (데이터셋 내 대다수 영화의 개봉년도 대비 과거 연도 기준 필터링)
-rerelease_df = df[df["openYear"] < 2018].sort_values(
-    by="total_audi", ascending=False
+# openDt(YYYYMMDD 또는 YYYY-MM-DD)에서 연도 추출 후 2009년 영화 필터링
+df["openYear"] = (
+    df["openDt"].astype(str).str.replace("-", "").str[:4].astype(int)
 )
+df_2009 = df[df["openYear"] == 2009]
 
-# 상위 3개 재개봉 영화 추출
-top3_rerelease = rerelease_df.head(3)
+# 2009년 장르별 영화 편수 집계
+genre_2009_counts = (
+    df_2009["genre"].value_counts().reset_index()
+)
+genre_2009_counts.columns = ["genre", "count"]
 
 fig8 = px.bar(
-    top3_rerelease,
-    x="movieNm",
-    y="total_audi",
+    genre_2009_counts,
+    x="genre",
+    y="count",
     color="genre",
-    text="total_audi",
-    title="재개봉 영화 중 총 관객 수 TOP 3",
-    labels={
-        "movieNm": "영화명",
-        "total_audi": "총 관객 수",
-        "genre": "장르",
-    },
+    text="count",
+    title="2009년 장르별 개봉 영화 수",
+    labels={"genre": "장르", "count": "개봉 영화 수"},
 )
 
 fig8.update_traces(
-    texttemplate="%{text:,.0f}명",
     textposition="outside",
-    hovertemplate="<b>%{x}</b><br>개봉일: %{customdata}<br>총 관객 수: %{y:,.0f}명",
-    customdata=top3_rerelease["openDt"],
+    hovertemplate="<b>장르: %{x}</b><br>개봉 편수: %{y}편",
 )
 
-st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_rerelease")
+st.plotly_chart(fig8, use_container_width=True, key="chart_fig8_2009_genres")
 
-# 상위 3개 재개봉 영화 이름과 관객 수 출력
-top3_list = [
-    f"**'{row['movieNm']}'**({row['total_audi']:,.0f}명, 개봉일: {row['openDt']})"
-    for _, row in top3_rerelease.iterrows()
-]
-top3_str = ", ".join(top3_list)
+# 상위 3개 장르 추출
+top3_genres_2009 = genre_2009_counts.head(3)
+top3_str = ", ".join(
+    [
+        f"**'{row['genre']}'**({row['count']}편)"
+        for _, row in top3_genres_2009.iterrows()
+    ]
+)
 
 st.markdown("---")
 st.markdown("**💡 이 그래프로 알 수 있는 것**")
 st.caption(
-    f"과거 개봉 후 해당 기간에 재개봉하여 박스오피스 상위권에 진입한 영화 중, 가장 관객 수가 많은 상위 3개 영화는 {top3_str}입니다."
+    f"2009년에 개봉한 영화들의 장르별 비중을 알 수 있으며, 가장 많이 개봉된 상위 3개 장르는 {top3_str}입니다."
 )
 st.markdown("---")
